@@ -26,6 +26,8 @@ pub fn FixedPoint(comptime bits: comptime_int, comptime scaling: comptime_int) t
 
     const scaling_bits_max: comptime_int = std.math.log2_int_ceil(BaseIntUnsigned, scaling);
 
+    const significant_digits = std.math.ceil(std.math.log10(@as(comptime_float, scaling)));
+
     return struct {
         pub const Int = BaseInt;
 
@@ -111,6 +113,26 @@ pub fn FixedPoint(comptime bits: comptime_int, comptime scaling: comptime_int) t
 
         pub fn eql(a: F, b: F) bool {
             return a.raw == b.raw;
+        }
+
+        // format api
+
+        pub fn format(f: F, comptime fmt: []const u8, options: std.fmt.FormatOptions, writer: anytype) !void {
+            if (comptime (fmt.len == 0 or std.mem.eql(u8, fmt, "any") or std.mem.eql(u8, fmt, "d"))) {
+                var copy_options = if (options.precision == null) blk: {
+                    var copy = options;
+                    copy.precision = significant_digits;
+                    break :blk copy;
+                } else options;
+
+                try std.fmt.formatFloatDecimal(f.toFloat(f32), copy_options, writer);
+            } else if (comptime std.mem.eql(u8, fmt, "x")) {
+                try std.fmt.formatFloatHexadecimal(f.toFloat(f32), options, writer);
+            } else if (comptime std.mem.eql(u8, fmt, "e")) {
+                try std.fmt.formatFloatScientific(f.toFloat(f32), options, writer);
+            } else {
+                @compileError(comptime std.fmt.comptimePrint("Invalid fmt for FixedPoint({},{}): {{{s}}}", .{ bits, scaling, fmt }));
+            }
         }
 
         // implement guaranteed shift semantics for POT scalings
@@ -225,4 +247,19 @@ fn TestSuite(comptime FP: type) type {
             }
         }
     };
+}
+
+test "basic printing" {
+    const Meter = FixedPoint(32, 1000); // millimeter precision meter units, using 32 bits
+
+    const position_1 = Meter.fromFloat(10); // 10m
+    const position_2 = position_1.add(Meter.fromFloat(0.01)); // add 1cm
+    const position_3 = position_2.add(Meter.fromFloat(0.09)); // add 9cm
+    const distance = position_3.sub(position_1);
+
+    var buffer: [64]u8 = undefined;
+
+    try std.testing.expectEqualStrings("Distance = 0.100m", try std.fmt.bufPrint(&buffer, "Distance = {}m", .{distance}));
+    try std.testing.expectEqualStrings("Distance = 0.10m", try std.fmt.bufPrint(&buffer, "Distance = {d:0.2}m", .{distance}));
+    try std.testing.expectEqualStrings("Distance = 0.1m", try std.fmt.bufPrint(&buffer, "Distance = {d:0.1}m", .{distance}));
 }
