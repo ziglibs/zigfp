@@ -162,6 +162,8 @@ test {
     _ = TestSuite(i32p10);
     _ = TestSuite(i32p64);
     _ = TestSuite(i64p32);
+    _ = TestSuite(FixedPoint(32, 1000));
+    _ = TestSuite(FixedPoint(64, 1000));
 }
 
 fn TestSuite(comptime FP: type) type {
