@@ -53,13 +53,13 @@ pub fn FixedPoint(comptime bits: comptime_int, comptime scaling: comptime_int) t
 
         pub fn fromFloat(v: f32) F {
             // std.debug.print("fromFloat({}, {d})\n", .{ Int, v });
-            return .{ .raw = @floatToInt(Int, scaling * v) };
+            return .{ .raw = @as(Int, @intFromFloat(scaling * v)) };
         }
 
         pub fn toFloat(v: F, comptime T: type) T {
             // std.debug.print("toFloat({}, {})\n", .{ Int, v.raw });
             _ = @typeInfo(T).Float;
-            return @intToFloat(T, v.raw) / scaling;
+            return @as(T, @floatFromInt(v.raw)) / scaling;
         }
 
         pub fn fromInt(i: IntPart) F {
@@ -68,7 +68,7 @@ pub fn FixedPoint(comptime bits: comptime_int, comptime scaling: comptime_int) t
 
         pub fn toInt(f: F) IntPart {
             // std.debug.print("toInt({}, {})\n", .{ Int, f.raw });
-            return @intCast(IntPart, @divTrunc(f.raw, scaling));
+            return @as(IntPart, @intCast(@divTrunc(f.raw, scaling)));
         }
 
         // arithmetic operators:
@@ -82,11 +82,11 @@ pub fn FixedPoint(comptime bits: comptime_int, comptime scaling: comptime_int) t
         }
 
         pub fn mul(a: F, b: F) F {
-            return .{ .raw = @intCast(Int, scaleDown(@as(Int2, a.raw) * @as(Int2, b.raw))) };
+            return .{ .raw = @as(Int, @intCast(scaleDown(@as(Int2, a.raw) * @as(Int2, b.raw)))) };
         }
 
         pub fn div(a: F, b: F) F {
-            return .{ .raw = @intCast(Int, @divTrunc(scaleUp(a.raw), b.raw)) };
+            return .{ .raw = @as(Int, @intCast(@divTrunc(scaleUp(a.raw), b.raw))) };
         }
 
         pub fn mod(a: F, b: F) F {
@@ -131,7 +131,7 @@ pub fn FixedPoint(comptime bits: comptime_int, comptime scaling: comptime_int) t
             } else if (comptime std.mem.eql(u8, fmt, "e")) {
                 try std.fmt.formatFloatScientific(f.toFloat(f32), options, writer);
             } else {
-                @compileError(comptime std.fmt.comptimePrint("Invalid fmt for FixedPoint({},{}): {{{s}}}", .{ bits, scaling, fmt }));
+                @compileError(std.fmt.comptimePrint("Invalid fmt for FixedPoint({},{}): {{{s}}}", .{ bits, scaling, fmt }));
             }
         }
 
@@ -151,9 +151,9 @@ pub fn FixedPoint(comptime bits: comptime_int, comptime scaling: comptime_int) t
 
         fn scaleDown(in: Int2) Int {
             return if (is_pot)
-                @intCast(Int, in >> precision_bits)
+                @as(Int, @intCast(in >> precision_bits))
             else
-                @intCast(Int, @divTrunc(in, scaling));
+                @as(Int, @intCast(@divTrunc(in, scaling)));
         }
     };
 }
