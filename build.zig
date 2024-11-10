@@ -1,11 +1,11 @@
 const std = @import("std");
 
-pub fn build(b: *std.build.Builder) void {
+pub fn build(b: *std.Build) void {
     const optimize = b.standardOptimizeOption(.{});
-    _ = b.addModule("fp", .{ .source_file = .{ .path = "src/main.zig" } });
+    _ = b.addModule("fp", .{ .root_source_file = b.path("src/main.zig") });
 
     const main_tests = b.addTest(.{
-        .root_source_file = .{ .path = "src/main.zig" },
+        .root_source_file = b.path("src/main.zig"),
         .optimize = optimize,
     });
     const run_tests = b.addRunArtifact(main_tests);

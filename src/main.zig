@@ -118,21 +118,30 @@ pub fn FixedPoint(comptime bits: comptime_int, comptime scaling: comptime_int) t
         // format api
 
         pub fn format(f: F, comptime fmt: []const u8, options: std.fmt.FormatOptions, writer: anytype) !void {
-            if (comptime (fmt.len == 0 or std.mem.eql(u8, fmt, "any") or std.mem.eql(u8, fmt, "d"))) {
-                var copy_options = if (options.precision == null) blk: {
-                    var copy = options;
-                    copy.precision = significant_digits;
-                    break :blk copy;
-                } else options;
-
-                try std.fmt.formatFloatDecimal(f.toFloat(f32), copy_options, writer);
-            } else if (comptime std.mem.eql(u8, fmt, "x")) {
-                try std.fmt.formatFloatHexadecimal(f.toFloat(f32), options, writer);
-            } else if (comptime std.mem.eql(u8, fmt, "e")) {
-                try std.fmt.formatFloatScientific(f.toFloat(f32), options, writer);
-            } else {
-                @compileError(std.fmt.comptimePrint("Invalid fmt for FixedPoint({},{}): {{{s}}}", .{ bits, scaling, fmt }));
+            if (comptime std.mem.eql(u8, fmt, "x")) {
+                return std.fmt.formatFloatHexadecimal(f.toFloat(f32), options, writer);
             }
+
+            const mode: std.fmt.format_float.Format = comptime blk: {
+                if (fmt.len == 0 or std.mem.eql(u8, fmt, "any") or std.mem.eql(u8, fmt, "d")) {
+                    break :blk .decimal;
+                } else if (std.mem.eql(u8, fmt, "e")) {
+                    break :blk .scientific;
+                } else {
+                    @compileError(std.fmt.comptimePrint("Invalid fmt for FixedPoint({},{}): {{{s}}}", .{ bits, scaling, fmt }));
+                }
+            };
+
+            const foptions = std.fmt.format_float.FormatOptions{
+                .mode = mode,
+                .precision = if (mode == .decimal) blk: {
+                    break :blk if (options.precision) |p| p else significant_digits;
+                } else options.precision,
+            };
+
+            var buf: [std.fmt.format_float.bufferSize(mode, f32)]u8 = undefined;
+            const s = try std.fmt.format_float.formatFloat(&buf, f.toFloat(f32), foptions);
+            try std.fmt.formatBuf(s, options, writer);
         }
 
         // implement guaranteed shift semantics for POT scalings
