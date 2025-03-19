@@ -16,10 +16,10 @@ pub fn FixedPoint(comptime bits: comptime_int, comptime scaling: comptime_int) t
     if (scaling < 1)
         @compileError("scaling must be a positive, non-zero integer!");
     const BaseInt = @Type(.{
-        .Int = .{ .bits = bits, .signedness = .signed },
+        .int = .{ .bits = bits, .signedness = .signed },
     });
     const BaseIntUnsigned = @Type(.{
-        .Int = .{ .bits = bits - 1, .signedness = .unsigned },
+        .int = .{ .bits = bits - 1, .signedness = .unsigned },
     });
     if (scaling > std.math.maxInt(BaseInt))
         @compileError(std.fmt.comptimePrint("scaling must be less than {}", .{std.math.maxInt(BaseInt)}));
@@ -32,11 +32,11 @@ pub fn FixedPoint(comptime bits: comptime_int, comptime scaling: comptime_int) t
         pub const Int = BaseInt;
 
         pub const Int2 = @Type(.{
-            .Int = .{ .bits = 2 * bits, .signedness = .signed },
+            .int = .{ .bits = 2 * bits, .signedness = .signed },
         });
 
         pub const IntPart = @Type(.{
-            .Int = .{ .bits = bits - scaling_bits_max, .signedness = .signed },
+            .int = .{ .bits = bits - scaling_bits_max, .signedness = .signed },
         });
 
         pub const precision = 2.0 / @as(comptime_float, scaling);
@@ -58,7 +58,7 @@ pub fn FixedPoint(comptime bits: comptime_int, comptime scaling: comptime_int) t
 
         pub fn toFloat(v: F, comptime T: type) T {
             // std.debug.print("toFloat({}, {})\n", .{ Int, v.raw });
-            _ = @typeInfo(T).Float;
+            _ = @typeInfo(T).float;
             return @as(T, @floatFromInt(v.raw)) / scaling;
         }
 
