@@ -169,7 +169,7 @@ pub fn FixedPoint(comptime bits: comptime_int, comptime scaling: comptime_int) t
 
 test {
     _ = TestSuite(i32p10);
-    _ = TestSuite(i32p64);
+    _ = TestSuite(i32p16);
     _ = TestSuite(i64p32);
     _ = TestSuite(FixedPoint(32, 1000));
     _ = TestSuite(FixedPoint(64, 1000));
