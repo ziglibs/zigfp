@@ -4,7 +4,7 @@ const std = @import("std");
 pub const i32p10 = FixedPoint(32, 1024);
 
 /// medium range, medium precision fixed point value between -32000 and +32000, with a precision of roughly 0.000015
-pub const i32p64 = FixedPoint(32, 65536);
+pub const i32p16 = FixedPoint(32, 65536);
 
 /// high precision fixed point with i32 integer range and a precision of roughly 0.00000000025
 pub const i64p32 = FixedPoint(64, 1 << 32);
