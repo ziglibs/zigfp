@@ -1,8 +1,8 @@
 .{
-    .name = "zigfp",
+    .name = .zigfp,
     .version = "0.0.1",
-
-    .minimum_zig_version = "0.13.0",
+    .fingerprint = 0x1d54d742143d3f65,
+    .minimum_zig_version = "0.14.0",
 
     .paths = .{
         "build.zig",

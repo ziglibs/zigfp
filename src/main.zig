@@ -4,7 +4,7 @@ const std = @import("std");
 pub const i32p10 = FixedPoint(32, 1024);
 
 /// medium range, medium precision fixed point value between -32000 and +32000, with a precision of roughly 0.000015
-pub const i32p64 = FixedPoint(32, 65536);
+pub const i32p16 = FixedPoint(32, 65536);
 
 /// high precision fixed point with i32 integer range and a precision of roughly 0.00000000025
 pub const i64p32 = FixedPoint(64, 1 << 32);
@@ -16,10 +16,10 @@ pub fn FixedPoint(comptime bits: comptime_int, comptime scaling: comptime_int) t
     if (scaling < 1)
         @compileError("scaling must be a positive, non-zero integer!");
     const BaseInt = @Type(.{
-        .Int = .{ .bits = bits, .signedness = .signed },
+        .int = .{ .bits = bits, .signedness = .signed },
     });
     const BaseIntUnsigned = @Type(.{
-        .Int = .{ .bits = bits - 1, .signedness = .unsigned },
+        .int = .{ .bits = bits - 1, .signedness = .unsigned },
     });
     if (scaling > std.math.maxInt(BaseInt))
         @compileError(std.fmt.comptimePrint("scaling must be less than {}", .{std.math.maxInt(BaseInt)}));
@@ -32,11 +32,11 @@ pub fn FixedPoint(comptime bits: comptime_int, comptime scaling: comptime_int) t
         pub const Int = BaseInt;
 
         pub const Int2 = @Type(.{
-            .Int = .{ .bits = 2 * bits, .signedness = .signed },
+            .int = .{ .bits = 2 * bits, .signedness = .signed },
         });
 
         pub const IntPart = @Type(.{
-            .Int = .{ .bits = bits - scaling_bits_max, .signedness = .signed },
+            .int = .{ .bits = bits - scaling_bits_max, .signedness = .signed },
         });
 
         pub const precision = 2.0 / @as(comptime_float, scaling);
@@ -58,7 +58,7 @@ pub fn FixedPoint(comptime bits: comptime_int, comptime scaling: comptime_int) t
 
         pub fn toFloat(v: F, comptime T: type) T {
             // std.debug.print("toFloat({}, {})\n", .{ Int, v.raw });
-            _ = @typeInfo(T).Float;
+            _ = @typeInfo(T).float;
             return @as(T, @floatFromInt(v.raw)) / scaling;
         }
 
@@ -169,7 +169,7 @@ pub fn FixedPoint(comptime bits: comptime_int, comptime scaling: comptime_int) t
 
 test {
     _ = TestSuite(i32p10);
-    _ = TestSuite(i32p64);
+    _ = TestSuite(i32p16);
     _ = TestSuite(i64p32);
     _ = TestSuite(FixedPoint(32, 1000));
     _ = TestSuite(FixedPoint(64, 1000));
